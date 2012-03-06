@@ -2007,7 +2007,12 @@ static int vmx_get_vmx_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 *pdata)
 
 	switch (msr_index) {
 	case MSR_IA32_FEATURE_CONTROL:
-		*pdata = 0;
+                /*
+                 * If nested VMX is enabled, set the lock bit (bit 0)
+                 * and the "Enable VMX outside SMX" bit (bit 2) in the
+                 * FEATURE_CONTROL MSR.
+                 */
+		*pdata = nested_vmx_allowed(vcpu) ? 0x5 : 0;
 		break;
 	case MSR_IA32_VMX_BASIC:
 		/*
