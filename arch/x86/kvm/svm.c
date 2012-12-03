@@ -20,6 +20,7 @@
 #include "mmu.h"
 #include "kvm_cache_regs.h"
 #include "x86.h"
+#include "cpuid.h"
 
 #include <linux/module.h>
 #include <linux/mod_devicetable.h>
@@ -1190,6 +1191,7 @@ static void init_vmcb(struct vcpu_svm *svm)
 static int svm_vcpu_reset(struct kvm_vcpu *vcpu)
 {
 	struct vcpu_svm *svm = to_svm(vcpu);
+	u32 dummy, eax;
 
 	init_vmcb(svm);
 
@@ -1198,8 +1200,9 @@ static int svm_vcpu_reset(struct kvm_vcpu *vcpu)
 		svm->vmcb->save.cs.base = svm->vcpu.arch.sipi_vector << 12;
 		svm->vmcb->save.cs.selector = svm->vcpu.arch.sipi_vector << 8;
 	}
-	vcpu->arch.regs_avail = ~0;
-	vcpu->arch.regs_dirty = ~0;
+
+	kvm_cpuid(vcpu, &eax, &dummy, &dummy, &dummy);
+	kvm_register_write(vcpu, VCPU_REGS_RDX, eax);
 
 	return 0;
 }

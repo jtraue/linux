@@ -6045,6 +6045,8 @@ void kvm_arch_vcpu_destroy(struct kvm_vcpu *vcpu)
 
 int kvm_arch_vcpu_reset(struct kvm_vcpu *vcpu)
 {
+	int ret;
+
 	atomic_set(&vcpu->arch.nmi_queued, 0);
 	vcpu->arch.nmi_pending = 0;
 	vcpu->arch.nmi_injected = false;
@@ -6066,7 +6068,15 @@ int kvm_arch_vcpu_reset(struct kvm_vcpu *vcpu)
 
 	kvm_pmu_reset(vcpu);
 
-	return kvm_x86_ops->vcpu_reset(vcpu);
+	memset(vcpu->arch.regs, 0, sizeof(vcpu->arch.regs));
+	vcpu->arch.regs_avail = ~0;
+	vcpu->arch.regs_dirty = ~0;
+
+	if ((ret = fx_init(vcpu)) != 0) goto out;
+
+	ret = kvm_x86_ops->vcpu_reset(vcpu);
+out:
+	return ret;
 }
 
 int kvm_arch_hardware_enable(void *garbage)

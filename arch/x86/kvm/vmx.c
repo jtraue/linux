@@ -3947,7 +3947,7 @@ static int vmx_vcpu_reset(struct kvm_vcpu *vcpu)
 	u64 msr;
 	int ret;
 
-	vcpu->arch.regs_avail = ~((1 << VCPU_REGS_RIP) | (1 << VCPU_REGS_RSP));
+	vcpu->arch.regs_avail = ~(1 << VCPU_REGS_RIP);
 
 	vmx->rmode.vm86_active = 0;
 
@@ -3959,10 +3959,6 @@ static int vmx_vcpu_reset(struct kvm_vcpu *vcpu)
 	if (kvm_vcpu_is_bsp(&vmx->vcpu))
 		msr |= MSR_IA32_APICBASE_BSP;
 	kvm_set_apic_base(&vmx->vcpu, msr);
-
-	ret = fx_init(&vmx->vcpu);
-	if (ret != 0)
-		goto out;
 
 	vmx_segment_cache_clear(vmx);
 
@@ -4004,7 +4000,6 @@ static int vmx_vcpu_reset(struct kvm_vcpu *vcpu)
 		kvm_rip_write(vcpu, 0xfff0);
 	else
 		kvm_rip_write(vcpu, 0);
-	kvm_register_write(vcpu, VCPU_REGS_RSP, 0);
 
 	vmcs_writel(GUEST_DR7, 0x400);
 
