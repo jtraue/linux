@@ -40,6 +40,7 @@ struct device;
 enum hypervisor_type {
 	INTEL_GVT_HYPERVISOR_XEN = 0,
 	INTEL_GVT_HYPERVISOR_KVM,
+	INTEL_GVT_HYPERVISOR_SVP,
 };
 
 /*
