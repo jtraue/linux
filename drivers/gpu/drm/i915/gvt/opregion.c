@@ -304,6 +304,7 @@ int intel_vgpu_opregion_base_write_handler(struct intel_vgpu *vgpu, u32 gpa)
 		for (i = 0; i < INTEL_GVT_OPREGION_PAGES; i++)
 			vgpu_opregion(vgpu)->gfn[i] = (gpa >> PAGE_SHIFT) + i;
 		break;
+	case INTEL_GVT_HYPERVISOR_SVP:
 	case INTEL_GVT_HYPERVISOR_XEN:
 		/**
 		 * Wins guest on Xengt will write this register twice: xen
@@ -337,7 +338,8 @@ void intel_vgpu_clean_opregion(struct intel_vgpu *vgpu)
 	if (!vgpu_opregion(vgpu)->va)
 		return;
 
-	if (intel_gvt_host.hypervisor_type == INTEL_GVT_HYPERVISOR_XEN) {
+	if (intel_gvt_host.hypervisor_type == INTEL_GVT_HYPERVISOR_XEN ||
+		intel_gvt_host.hypervisor_type == INTEL_GVT_HYPERVISOR_SVP) {
 		if (vgpu_opregion(vgpu)->mapped)
 			map_vgpu_opregion(vgpu, false);
 	} else if (intel_gvt_host.hypervisor_type == INTEL_GVT_HYPERVISOR_KVM) {
@@ -472,6 +474,7 @@ int intel_vgpu_emulate_opregion_request(struct intel_vgpu *vgpu, u32 swsci)
 	int ret;
 
 	switch (intel_gvt_host.hypervisor_type) {
+	case INTEL_GVT_HYPERVISOR_SVP:
 	case INTEL_GVT_HYPERVISOR_XEN:
 		scic = *((u32 *)vgpu_opregion(vgpu)->va +
 					INTEL_GVT_OPREGION_SCIC);
@@ -537,6 +540,7 @@ int intel_vgpu_emulate_opregion_request(struct intel_vgpu *vgpu, u32 swsci)
 
 out:
 	switch (intel_gvt_host.hypervisor_type) {
+	case INTEL_GVT_HYPERVISOR_SVP:
 	case INTEL_GVT_HYPERVISOR_XEN:
 		*((u32 *)vgpu_opregion(vgpu)->va +
 					INTEL_GVT_OPREGION_SCIC) = scic;
